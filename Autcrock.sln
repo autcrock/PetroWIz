@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2013 for Web
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PublishScripts", "PublishScripts", "{576D0B40-92A0-4EBF-BEBA-9F3D08D80169}"
+	ProjectSection(SolutionItems) = preProject
+		PublishScripts\AzureWebsitePublishModule.psm1 = PublishScripts\AzureWebsitePublishModule.psm1
+		PublishScripts\Publish-WebApplicationWebsite.ps1 = PublishScripts\Publish-WebApplicationWebsite.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configurations", "Configurations", "{80E9569B-88C0-4A73-8FF1-6F758369B0D9}"
+	ProjectSection(SolutionItems) = preProject
+		PublishScripts\Configurations\ASPLASBrowse-WAWS-dev.json = PublishScripts\Configurations\ASPLASBrowse-WAWS-dev.json
+		PublishScripts\Configurations\Autcrock-WAWS-dev.json = PublishScripts\Configurations\Autcrock-WAWS-dev.json
+	EndProjectSection
+EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "Autcrock.Azure", "Autcrock.Azure\Autcrock.Azure.ccproj", "{823C2980-BBA6-465A-88A8-28C982A21B7C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KGS Browse", "..\KGS Browse\KGS Browse\KGS Browse.csproj", "{173C7DFE-5702-4575-BEF2-7DA555A5E3E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPLASBrowse", "ASPLASBrowse\ASPLASBrowse.csproj", "{615196BF-59D2-4E0E-95B9-52AFA2B7EE4C}"
+EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "ASPLASBrowse.Azure", "ASPLASBrowse.Azure\ASPLASBrowse.Azure.ccproj", "{153FFCD8-CA2C-4324-9AC2-E8938897A47A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{823C2980-BBA6-465A-88A8-28C982A21B7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{823C2980-BBA6-465A-88A8-28C982A21B7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{823C2980-BBA6-465A-88A8-28C982A21B7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{823C2980-BBA6-465A-88A8-28C982A21B7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{173C7DFE-5702-4575-BEF2-7DA555A5E3E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{173C7DFE-5702-4575-BEF2-7DA555A5E3E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{173C7DFE-5702-4575-BEF2-7DA555A5E3E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{173C7DFE-5702-4575-BEF2-7DA555A5E3E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{615196BF-59D2-4E0E-95B9-52AFA2B7EE4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{615196BF-59D2-4E0E-95B9-52AFA2B7EE4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{615196BF-59D2-4E0E-95B9-52AFA2B7EE4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{615196BF-59D2-4E0E-95B9-52AFA2B7EE4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{153FFCD8-CA2C-4324-9AC2-E8938897A47A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{153FFCD8-CA2C-4324-9AC2-E8938897A47A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{153FFCD8-CA2C-4324-9AC2-E8938897A47A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{153FFCD8-CA2C-4324-9AC2-E8938897A47A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{80E9569B-88C0-4A73-8FF1-6F758369B0D9} = {576D0B40-92A0-4EBF-BEBA-9F3D08D80169}
+	EndGlobalSection
+EndGlobal
