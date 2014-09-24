@@ -65,6 +65,7 @@ namespace ASPLASBrowse
         // Load and parse a LAS file, which only contains numerical well logs.
         // Go the quick and dirty suck it all into memory and string split approach.
         // No error handling.
+        // Untested for LAS 3.x files or for contractor specific non-standard variations.
 
         private static Log LoadLAS ( string filename)
         {
@@ -85,27 +86,35 @@ namespace ASPLASBrowse
             for (int i = 1; i < segments.Length; i++)
             {
                 // Preserve the header meta data as strings as the most likely way it will be useful.
-                if (segments[i].Contains("ASCII Log Data") && logCount != 0)
+                LogHeaderSegment segment = null;
+                switch (segments[i][0])
                 {
-                    resultData = new LogData((int)logCount, segments[i]);
-                }
-                else
-                {
-                    LogHeaderSegment segment = null;
+                    case 'A':
+                        // The ASCII log data.
+                        if (logCount > 0)
+                        // Silently bypass if the compulsory log data segment is out of order.
+                        {
+                            resultData = new LogData((int)logCount, segments[i]);
+                        }
+                        break;
 
-                    if (segments[i].Contains("Other Information"))
-                    {
+                    case 'O':
+                        // The Other segment - non-delimited text format - stored as a string.
                         segment = new LogHeaderSegment(segments[i], true);
-                    }
-                    else
-                    {
+                        break;
+                    case 'C':
+                        // The Curve names, units, API code, description.
+                        // Delimited by '.' and ':' and parsed as one LogDataQuadruple per line
                         segment = new LogHeaderSegment(segments[i], false);
                         headerSegments.Add(segment);
-                        if (segments[i].Contains("Curve Information"))
-                        {
-                            logCount = segment.data.Count;
-                        }
-                    }
+                        logCount = segment.data.Count;
+                        break;
+                    default:
+                        // The Version, Parameter and Well information blocks.
+                        // Delimited by '.' and ':' and parsed as one LogDataQuadruple per line
+                        segment = new LogHeaderSegment(segments[i], false);
+                        headerSegments.Add(segment);
+                        break;
                 }
             }
             resultHeader.segments = headerSegments;
@@ -156,11 +165,13 @@ namespace ASPLASBrowse
             {
                 string JSONString = "{" + Environment.NewLine;
                 int curveInfoIndex = 0;
-                while (!header.segments[curveInfoIndex].name.Contains("Curve Information"))
+                while (header.segments[curveInfoIndex].name[0] != 'C')
                 {
                     curveInfoIndex++;
                 }
 
+                // Thin the data out, ensuring the thinning inputs are sensible
+                if (data.sampleCount < thin) thin = data.sampleCount;
                 if (maxlogs > data.logCount) maxlogs = data.logCount;
                 int maxsamples = data.sampleCount - data.sampleCount % thin;
                 for (int i = 0; i < maxlogs; i++)
@@ -188,18 +199,23 @@ namespace ASPLASBrowse
             public string GetDepths(int thin)
             {
                 int curveInfoIndex = 0;
-                const string nameholder = "CURVE INFORMATION";
-                while (curveInfoIndex < data.logCount && !(String.Equals(header.segments[curveInfoIndex].name.ToUpperInvariant(), nameholder)))
+                while (curveInfoIndex < data.logCount && (header.segments[curveInfoIndex].name[0] != 'C'))
                 {
                     curveInfoIndex++;
                 }
-                int depthIndex = 0;
-                const string depthholder = "DEPT";
-                while (depthIndex < data.sampleCount && !(String.Equals(header.segments[curveInfoIndex].data[depthIndex].mnemonic.ToUpperInvariant(), depthholder)))
-                {
-                    depthIndex++;
-                }
+
+                const int depthIndex = 0;
+                // The depth log should always be the first column in a LAS file ASCII data section.
+
+//                const string depthholder = "DEPT";
+//                while (depthIndex < data.sampleCount && !(String.Equals(header.segments[curveInfoIndex].data[depthIndex].mnemonic.ToUpperInvariant(), depthholder)))
+//                {
+//                    depthIndex++;
+//                }
+                // Thin the data out, ensuring the thinning inputs are sensible
+                if (data.sampleCount < thin) thin = data.sampleCount;
                 int maxsamples = data.sampleCount - data.sampleCount % thin;
+
                 string depthString = "'" + header.segments[curveInfoIndex].data[depthIndex].mnemonic + "': [";
                 for (int j = 0; j < maxsamples; j += thin)
                 {
@@ -269,20 +285,24 @@ namespace ASPLASBrowse
                     return;
                 }
 
-                string[] words = Regex.Split(inString, @"\s+");
+                // Remove the first line containing the ~ASCII identifier
+                int index = inString.IndexOf(System.Environment.NewLine);
+                string inString1 = inString.Substring(index + System.Environment.NewLine.Length).Trim();
+                // Split into words and convert to raw log data
+                string[] words = Regex.Split(inString1, @"\s+");
                 logCount = lC;
-                wordCount = (int)words.Length - 3;
+                wordCount = (int)words.Length;
                 sampleCount = wordCount / logCount;
                 stringData = null;
                 doubleData = new double[logCount][];
                 for (int logIndex = 0; logIndex < logCount; logIndex++)
                 {
                     doubleData[logIndex] = new double[sampleCount];
-                    for (int wordIndex = 3; wordIndex < wordCount - 3; wordIndex += logCount)
+                    for (int wordIndex = 0; wordIndex < wordCount; wordIndex += logCount)
                     {
-                        int sampleIndex = (wordIndex - 3) / logCount;
+                        int sampleIndex = wordIndex / logCount;
                         string word = words[wordIndex + logIndex];
-                        if (!string.IsNullOrEmpty(word) && (word[0] != '#'))
+                        if (!string.IsNullOrEmpty(word))
                         {
                             doubleData[logIndex][sampleIndex] = Convert.ToDouble(word);
                         }
@@ -401,6 +421,7 @@ namespace ASPLASBrowse
             }
         }
 
+        // Generate a Well log display Javascript using the C3 library, from a Log class.
         public class C3LogDisplay
         {
             public Log log;
@@ -413,12 +434,21 @@ namespace ASPLASBrowse
                 JSOutputFileName = null;
                 log = inputLog;
                 JSONOutputFileName = null;
+                
                 script = "";
-                string JSONString = log.LogToJSON(40, 7);
+
+                // Convert the log to JSON format for entry into C3 Javascript for display
+                string JSONString = log.LogToJSON(40, 12);
+                // Get the depth log mnemonic for use in identifyiong the X axis prior to rotation to the vertical.
+                int endMnemonic = JSONString.IndexOf(':');
+                string depthMnemonic = JSONString.Substring(Environment.NewLine.Length+1, endMnemonic-3).Trim();
+//                string depthLog = log.GetDepths(12);
+
+                // Generate the script.
                 script += "<!-- Load c3.css -->" + Environment.NewLine;
                 script += "<link href=\"c3.css\" rel=\"stylesheet\" type=\"text/css\">" + Environment.NewLine;
                 script += "<!-- Load d3.js and c3.js -->" + Environment.NewLine;
-                script += "<script src=\"http://d3js.org/d3.v3.min.js\" charset=\"utf-8\"></script>" + Environment.NewLine;
+                script += "<script src=\"d3.min.js\" charset=\"utf-8\"></script>" + Environment.NewLine;
                 script += "<script src=\"c3.min.js\"></script>" + Environment.NewLine;
                 script += "<div id=\"chart\"></div>" + Environment.NewLine;
                 script += "<!-- Call generate() with arguments: -->" + Environment.NewLine;
@@ -431,8 +461,9 @@ namespace ASPLASBrowse
                 script += "    }," + Environment.NewLine;
 
                 script += "    data: {" + Environment.NewLine;
-                script += "    x: 'DEPT'," + Environment.NewLine;
-                script += "        json: " + JSONString + Environment.NewLine;
+                script += "           x: " + depthMnemonic + "," + Environment.NewLine;
+//                script += "           x: {" + depthLog + "}," + Environment.NewLine;
+                script += "           json: " + JSONString + Environment.NewLine;
                 script += "    }," + Environment.NewLine;
                 script += "    axis: { 'rotated': true }," + Environment.NewLine;
                 script += "    point: { 'show': false }" + Environment.NewLine;
