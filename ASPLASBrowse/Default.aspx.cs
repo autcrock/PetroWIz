@@ -491,7 +491,7 @@ namespace ASPLASBrowse
                 int endMnemonic = JSONString.IndexOf(':');
                 string depthMnemonic = JSONString.Substring(Environment.NewLine.Length + 1, endMnemonic - 3).Trim();
                 //                string depthLog = log.GetDepths(12);
-
+#if false
                 script += "       <!-- Load well.css -->" + Environment.NewLine;
                 script += "       <link href=\"well.css\" rel=\"stylesheet\" type=\"text/css\">" + Environment.NewLine;
                 script += "       <!-- Load d3.js -->" + Environment.NewLine;
@@ -529,7 +529,7 @@ namespace ASPLASBrowse
                 script += "         })";
                 script += "       </script>" + Environment.NewLine;
 
-#if false
+#else
                 // Generate the script.
                 script += "<!-- Load c3.css -->" + Environment.NewLine;
                 script += "<link href=\"c3.css\" rel=\"stylesheet\" type=\"text/css\">" + Environment.NewLine;
