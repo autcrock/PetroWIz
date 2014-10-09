@@ -22,7 +22,7 @@ namespace ASPLASBrowse
     {
         protected void Page_Load(object sender, EventArgs e)
         {
- //           HelloWorldLabel.Text = "Hello, world!";
+            //           HelloWorldLabel.Text = "Hello, world!";
         }
         protected void UploadButton_Click(object sender, EventArgs e)
         {
@@ -30,7 +30,7 @@ namespace ASPLASBrowse
             {
                 try
                 {
-                    if (Path.GetExtension(LASSelector.FileName)!= "LAS")
+                    if (Path.GetExtension(LASSelector.FileName) != "LAS")
                     {
                         if (LASSelector.PostedFile.ContentLength < 100000000)
                         {
@@ -38,16 +38,18 @@ namespace ASPLASBrowse
                             LASSelector.SaveAs(Server.MapPath("~/") + filename);
                             StatusLabel.Text = " is being loaded on Azure.";
                             Log inputLog = LoadLAS(Server.MapPath("~/") + filename);
-                            if (inputLog == null) {
+                            if (inputLog == null)
+                            {
                                 StatusLabel.Text = LASSelector.FileName + " was not loaded, LoadLASS returned a null result.";
                             }
                             StatusLabel.Text = " LAS file loaded on Azure.";
-                            C3LogDisplay display = new C3LogDisplay(inputLog);
-                            StatusLabel.Text = " setting up C3 display Javascript and JSON data file.";
-                            StatusLabel.Text = " sending C3 display Javascript to client browser.";
+                            D3LogDisplay display = new D3LogDisplay(inputLog);
+                            //                            C3LogDisplay display = new C3LogDisplay(inputLog);
+                            StatusLabel.Text = " setting up display Javascript and JSON data file.";
+                            StatusLabel.Text = " sending display Javascript to client browser.";
                             LiteralControl JSLiteral = new LiteralControl(display.script);
-                            D3CodeLocation.Controls.Add(JSLiteral);
-                            StatusLabel.Text = " C3 display Javascript sent.";
+                            DisplayCodeLocation.Controls.Add(JSLiteral);
+                            StatusLabel.Text = " Display Javascript sent.";
                         }
                         else
                             StatusLabel.Text = LASSelector.FileName + " Upload error: More than 100000000 Bytes of data";
@@ -67,9 +69,9 @@ namespace ASPLASBrowse
         // No error handling.
         // Untested for LAS 3.x files or for contractor specific non-standard variations.
 
-        private static Log LoadLAS ( string filename)
+        private static Log LoadLAS(string filename)
         {
-            List<LogHeaderSegment> headerSegments = new List<LogHeaderSegment>();
+            var headerSegments = new List<LogHeaderSegment>();
             LogHeader resultHeader = new LogHeader();
             List<LogStringDatum> stringData = new List<LogStringDatum>();
             LogData resultData = new LogData();
@@ -120,6 +122,7 @@ namespace ASPLASBrowse
             resultHeader.segments = headerSegments;
             sr.Close();
             fs.Close();
+            
             return new Log(resultHeader, resultData);
         }
 
@@ -176,22 +179,22 @@ namespace ASPLASBrowse
                 int maxsamples = data.sampleCount - data.sampleCount % thin;
                 for (int i = 0; i < maxlogs; i++)
                 {
-                        JSONString += "'" + header.segments[curveInfoIndex].data[i].mnemonic + "': [";
-                        for (int j = 0; j < maxsamples; j += thin)
+                    JSONString += "'" + header.segments[curveInfoIndex].data[i].mnemonic + "': [";
+                    for (int j = 0; j < maxsamples; j += thin)
+                    {
+                        if (j == maxsamples - thin)
                         {
-                            if (j == maxsamples - thin)
-                            {
-                                JSONString += data.doubleData[i][j];
-                            }
-                            else
-                            {
-                                JSONString += data.doubleData[i][j] + ", ";
-                            }
+                            JSONString += data.doubleData[i][j];
                         }
-                        if (i == maxlogs - 1)
-                            JSONString += "]" + Environment.NewLine + Environment.NewLine;
                         else
-                            JSONString += "]," + Environment.NewLine + Environment.NewLine;
+                        {
+                            JSONString += data.doubleData[i][j] + ", ";
+                        }
+                    }
+                    if (i == maxlogs - 1)
+                        JSONString += "]" + Environment.NewLine + Environment.NewLine;
+                    else
+                        JSONString += "]," + Environment.NewLine + Environment.NewLine;
                 }
                 JSONString += "}" + Environment.NewLine;
                 return JSONString;
@@ -207,11 +210,11 @@ namespace ASPLASBrowse
                 const int depthIndex = 0;
                 // The depth log should always be the first column in a LAS file ASCII data section.
 
-//                const string depthholder = "DEPT";
-//                while (depthIndex < data.sampleCount && !(String.Equals(header.segments[curveInfoIndex].data[depthIndex].mnemonic.ToUpperInvariant(), depthholder)))
-//                {
-//                    depthIndex++;
-//                }
+                //                const string depthholder = "DEPT";
+                //                while (depthIndex < data.sampleCount && !(String.Equals(header.segments[curveInfoIndex].data[depthIndex].mnemonic.ToUpperInvariant(), depthholder)))
+                //                {
+                //                    depthIndex++;
+                //                }
                 // Thin the data out, ensuring the thinning inputs are sensible
                 if (data.sampleCount < thin) thin = data.sampleCount;
                 int maxsamples = data.sampleCount - data.sampleCount % thin;
@@ -425,24 +428,19 @@ namespace ASPLASBrowse
         public class C3LogDisplay
         {
             public Log log;
-            public string JSOutputFileName;
-            public string JSONOutputFileName;
             public string script;
 
             public C3LogDisplay(Log inputLog)
             {
-                JSOutputFileName = null;
                 log = inputLog;
-                JSONOutputFileName = null;
-                
                 script = "";
 
                 // Convert the log to JSON format for entry into C3 Javascript for display
                 string JSONString = log.LogToJSON(40, 12);
                 // Get the depth log mnemonic for use in identifyiong the X axis prior to rotation to the vertical.
                 int endMnemonic = JSONString.IndexOf(':');
-                string depthMnemonic = JSONString.Substring(Environment.NewLine.Length+1, endMnemonic-3).Trim();
-//                string depthLog = log.GetDepths(12);
+                string depthMnemonic = JSONString.Substring(Environment.NewLine.Length + 1, endMnemonic - 3).Trim();
+                //                string depthLog = log.GetDepths(12);
 
                 // Generate the script.
                 script += "<!-- Load c3.css -->" + Environment.NewLine;
@@ -462,15 +460,106 @@ namespace ASPLASBrowse
 
                 script += "    data: {" + Environment.NewLine;
                 script += "           x: " + depthMnemonic + "," + Environment.NewLine;
-//                script += "           x: {" + depthLog + "}," + Environment.NewLine;
+                //                script += "           x: {" + depthLog + "}," + Environment.NewLine;
                 script += "           json: " + JSONString + Environment.NewLine;
                 script += "    }," + Environment.NewLine;
                 script += "    axis: { 'rotated': true }," + Environment.NewLine;
+                //                script += "    axis: { 'x': { 'min': 0, 'max': 5000 }, 'rotated': true }," + Environment.NewLine;
+                //                script += "    zoom: { 'enabled': true }," + Environment.NewLine;
+                //                script += "    subchart: { 'show': true }," + Environment.NewLine;
                 script += "    point: { 'show': false }" + Environment.NewLine;
 
                 script += "  });" + Environment.NewLine;
                 script += "</script>" + Environment.NewLine;
 
+            }
+        }
+        // Generate a Well log display Javascript using the C3 library, from a Log class.
+        public class D3LogDisplay
+        {
+            public Log log;
+            public string script;
+
+            public D3LogDisplay(Log inputLog)
+            {
+                log = inputLog;
+                script = "";
+
+                // Convert the log to JSON format for entry into C3 Javascript for display
+                string JSONString = log.LogToJSON(40, 12);
+                // Get the depth log mnemonic for use in identifyiong the X axis prior to rotation to the vertical.
+                int endMnemonic = JSONString.IndexOf(':');
+                string depthMnemonic = JSONString.Substring(Environment.NewLine.Length + 1, endMnemonic - 3).Trim();
+                //                string depthLog = log.GetDepths(12);
+
+                script += "       <!-- Load well.css -->" + Environment.NewLine;
+                script += "       <link href=\"well.css\" rel=\"stylesheet\" type=\"text/css\">" + Environment.NewLine;
+                script += "       <!-- Load d3.js -->" + Environment.NewLine;
+                script += "       <script src=\"d3.min.js\" charset=\"utf-8\"></script>" + Environment.NewLine;
+                script += "       <div id=\"chart\"></div>" + Environment.NewLine;
+                script += "       <!-- Call generate() with arguments: -->" + Environment.NewLine;
+                script += "       <script type=\"text/javascript\">" + Environment.NewLine;
+                script += "         $(function(){ alert('hi there');";
+                script += "		    var data = [3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 7]" + Environment.NewLine;
+                script += "			var w = 400" + Environment.NewLine;
+                script += "			var h = 200" + Environment.NewLine;
+                script += "			var margin = 20" + Environment.NewLine;
+                script += "			var y = d3.scale.linear().domain([0, d3.max(data)]).range([0 + margin, h - margin])" + Environment.NewLine;
+                script += "			var x = d3.scale.linear().domain([0, data.length]).range([0 + margin, w - margin])" + Environment.NewLine;
+
+                script += "			var vis = d3.select(\"chart\").append(\"svg:svg\").attr(\"width\", w).attr(\"height\", h)" + Environment.NewLine;
+
+                script += "			var g = vis.append(\"svg:g\").attr(\"transform\", \"translate(0, 200)\")" + Environment.NewLine;
+
+                script += "			var line = d3.svg.line().x(function(d,i) { return x(i); }).y(function(d) { return -1 * y(d); })" + Environment.NewLine;
+
+                script += "			g.append(\"svg:path\").attr(\"d\", line(data))" + Environment.NewLine;
+
+                script += "			g.append(\"svg:line\").attr(\"x1\", x(0)).attr(\"y1\", -1 * y(0)).attr(\"x2\", x(w)).attr(\"y2\", -1 * y(0))" + Environment.NewLine;
+
+                script += "			g.append(\"svg:line\").attr(\"x1\", x(0)).attr(\"y1\", -1 * y(0)).attr(\"x2\", x(0)).attr(\"y2\", -1 * y(d3.max(data)))" + Environment.NewLine;
+
+                script += "			g.selectAll(\".xLabel\").data(x.ticks(5)).enter().append(\"svg:text\").attr(\"class\", \"xLabel\").text(String).attr(\"x\", function(d) { return x(d) }).attr(\"y\", 0).attr(\"text-anchor\", \"middle\")" + Environment.NewLine;
+
+                script += "			g.selectAll(\".yLabel\").data(y.ticks(4)).enter().append(\"svg:text\").attr(\"class\", \"yLabel\").text(String).attr(\"x\", 0).attr(\"y\", function(d) { return -1 * y(d) }).attr(\"text-anchor\", \"right\").attr(\"dy\", 4)" + Environment.NewLine;
+
+                script += "			g.selectAll(\".xTicks\").data(x.ticks(5)).enter().append(\"svg:line\").attr(\"class\", \"xTicks\").attr(\"x1\", function(d) { return x(d); }).attr(\"y1\", -1 * y(0)).attr(\"x2\", function(d) { return x(d); }).attr(\"y2\", -1 * y(-0.3))" + Environment.NewLine;
+
+                script += "			g.selectAll(\".yTicks\").data(y.ticks(4)).enter().append(\"svg:line\").attr(\"class\", \"yTicks\").attr(\"y1\", function(d) { return -1 * y(d); }).attr(\"x1\", x(-0.3)).attr(\"y2\", function(d) { return -1 * y(d); }).attr(\"x2\", x(0))" + Environment.NewLine;
+                script += "         })";
+                script += "       </script>" + Environment.NewLine;
+
+#if false
+                // Generate the script.
+                script += "<!-- Load c3.css -->" + Environment.NewLine;
+                script += "<link href=\"c3.css\" rel=\"stylesheet\" type=\"text/css\">" + Environment.NewLine;
+                script += "<!-- Load d3.js and c3.js -->" + Environment.NewLine;
+                script += "<script src=\"d3.min.js\" charset=\"utf-8\"></script>" + Environment.NewLine;
+                script += "<script src=\"c3.min.js\"></script>" + Environment.NewLine;
+                script += "<div id=\"chart\"></div>" + Environment.NewLine;
+                script += "<!-- Call generate() with arguments: -->" + Environment.NewLine;
+                script += "<script>" + Environment.NewLine;
+                script += "var chart = c3.generate({" + Environment.NewLine;
+                script += "    bindto: '#chart'," + Environment.NewLine;
+                script += "    size: {" + Environment.NewLine;
+                script += "        height: 640," + Environment.NewLine;
+                script += "        width: 300" + Environment.NewLine;
+                script += "    }," + Environment.NewLine;
+
+                script += "    data: {" + Environment.NewLine;
+                script += "           x: " + depthMnemonic + "," + Environment.NewLine;
+                //                script += "           x: {" + depthLog + "}," + Environment.NewLine;
+                script += "           json: " + JSONString + Environment.NewLine;
+                script += "    }," + Environment.NewLine;
+                script += "    axis: { 'rotated': true }," + Environment.NewLine;
+                //                script += "    axis: { 'x': { 'min': 0, 'max': 5000 }, 'rotated': true }," + Environment.NewLine;
+                //                script += "    zoom: { 'enabled': true }," + Environment.NewLine;
+                //                script += "    subchart: { 'show': true }," + Environment.NewLine;
+                script += "    point: { 'show': false }" + Environment.NewLine;
+
+                script += "  });" + Environment.NewLine;
+                script += "</script>" + Environment.NewLine;
+#endif
             }
         }
     }

@@ -40,12 +40,12 @@ namespace ASPLASBrowse {
         protected global::System.Web.UI.WebControls.Label StatusLabel;
         
         /// <summary>
-        /// D3CodeLocation control.
+        /// DisplayCodeLocation control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.PlaceHolder D3CodeLocation;
+        protected global::System.Web.UI.WebControls.PlaceHolder DisplayCodeLocation;
     }
 }

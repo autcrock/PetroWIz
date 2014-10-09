@@ -40,7 +40,7 @@
         <asp:Label class="btn btn-primary btn-lg" runat="server" id="StatusLabel" text="LAS file upload status: " />
     </div>
     <div class="col-md-4">
-        <asp:PlaceHolder runat="server" ID ="D3CodeLocation"/>
+        <asp:PlaceHolder runat="server" ID ="DisplayCodeLocation"/>
     </div>
 </div>
 
