@@ -3,7 +3,6 @@
   <Role name="ASPLASBrowse">
     <Instances count="1" />
     <ConfigurationSettings>
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=autcrock;AccountKey=d/hdiFeubcBw4z6YiTfmh5lgCTwPeSCKL6h5M6pOJ8HVpy1ajCjYKw1CV7DK9eEWmHw9RPhCn7sM28lnBy2/OA==" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="mjt464@gmail.com" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEEDwzFbC9jClQzQ/I8totXkwDQYJKoZIhvcNAQEBBQAEggEAUi6sEP942Hh9ZsAMgjiOjf1PprW4eJw356/a23SqWBfhUnlFtu/iCJs71k17vTV8oENl2/JWvW7Z45S99wZkGPXt0kID9DZfbIweWL9QhMEIDFTH+gbEHdcyzWtqc3F25jIIbOB9PmBwpyb4goy9STi+HKjNSPQwKqY+VWLkY7+7cEVhwiQVqfhiYv8yWBnjEeG7UVS9bz/klkocr8XIJdRnZZx0AOc+gVzV3lcUii097zZhn7ZxA5iGjlQ45GWFQJDnBT5SkjKDsF/hEbgd7VRhJWHBtXSDuIxPzvQyM+rGW0UAQ/btmzVKx2eFW+K1JzExldQ5Wr46G9PcycY7FDAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECCWFbc9usjQ+gBD5FGThrOM5aNVQ7kqgwc4V" />
